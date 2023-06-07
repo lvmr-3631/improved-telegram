@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>条形码扫描器</title>
+    <script src="https://unpkg.com/@zxing/library@0.18.2"></script>
+</head>
+<body>
+    <h1>条形码扫描器</h1>
+    <video id="video" width="360" height="270"></video>
+    <p>请扫描条形码：</p>
+    <input type="text" id="barcode" name="barcode" readonly>
+    <p>价格： <span id="price"></span></p>
+    <script>
+        const codeReader = new ZXing.BrowserMultiFormatReader();
+        const video = document.getElementById('video');
+        const barcodeInput = document.getElementById('barcode');
+        const priceOutput = document.getElementById('price');
+        
+        navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+            video.srcObject = stream;
+            video.setAttribute('playsinline', true);
+            video.play();
+            loadBarcodeScanner();
+        }).catch((err) => {
+            console.error(err);
+        });
+        
+        function loadBarcodeScanner() {
+            codeReader.decodeFromVideoElement(video, 'video', (result, error, controls) => {
+                if (result) {
+                    barcodeInput.value = result.text;
+                    getPriceByBarcode(result.text);
+                    controls.stop();
+                    video.srcObject.getTracks().forEach(track => track.stop());
+                }
+                
+                if (error) {
+                    console.error(error);
+                }
+            });
+        }
+        
+        function getPriceByBarcode(barcode) {
+            // 请编写一个后端API来查询价格并返回相应结果
+            // 这里只是模拟一个 PRICES 对象进行价格查询
+            const PRICES = {
+                '6928033401714': 3.00”,
+                '69042386': 3.50,
+                '6930369270018': 5.30,
+                '6914973604520': 30.00,
+                '6925347303796': 25.00,
+                '2205112001220': 0.60,
+                '80050278': 35.00
+            };
+            if (PRICES.hasOwnProperty(barcode)) {
+                priceOutput.innerText = PRICES[barcode].toFixed(2);
+            } else {
+                priceOutput.innerText = '未找到该商品价格';
+            }
+        }
+    </script>
+</body>
+</html>
